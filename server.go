@@ -10,6 +10,8 @@ import (
 	"crypto/tls"
 	"errors"
 	"fmt"
+	"github.com/goftp/server/auth"
+	"github.com/goftp/server/flowctr"
 	"net"
 	"strconv"
 )
@@ -25,7 +27,7 @@ type ServerOpts struct {
 	// each client connection. This is a mandatory option.
 	Factory DriverFactory
 
-	Auth Auth
+	Auth *auth.Auth
 
 	// Server Name, Default is Go Ftp Server
 	Name string
@@ -165,6 +167,7 @@ func (server *Server) newConn(tcpConn net.Conn, driver Driver) *Conn {
 	c := new(Conn)
 	c.namePrefix = "/"
 	c.conn = tcpConn
+	c.flowCount=flowctr.GetFlowCount()
 	c.controlReader = bufio.NewReader(tcpConn)
 	c.controlWriter = bufio.NewWriter(tcpConn)
 	c.driver = driver
@@ -240,6 +243,7 @@ func (server *Server) Serve(l net.Listener) error {
 	server.listener = l
 	server.ctx, server.cancel = context.WithCancel(context.Background())
 	sessionID := ""
+	go flowctr.GetFlowCount().Show()
 	for {
 		tcpConn, err := server.listener.Accept()
 		if err != nil {

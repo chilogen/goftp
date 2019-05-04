@@ -8,27 +8,30 @@ package main
 
 import (
 	"flag"
+	"github.com/goftp/server/auth"
 	"log"
 
 	filedriver "github.com/goftp/file-driver"
 	"github.com/goftp/server"
 )
 
+var (
+	RootPath *string
+)
+
 func main() {
+	RootPath = flag.String("root", "~/testftp", "Root directory for server")
 	var (
-		root = flag.String("root", "", "Root directory to serve")
-		user = flag.String("user", "admin", "Username for login")
-		pass = flag.String("pass", "123456", "Password for login")
-		port = flag.Int("port", 2121, "Port")
-		host = flag.String("host", "localhost", "Port")
+		port = flag.Int("port", 2122, "Port")
+		host = flag.String("host", "", "Port")
 	)
 	flag.Parse()
-	if *root == "" {
+	if *RootPath == "" {
 		log.Fatalf("Please set a root to serve with -root")
 	}
 
 	factory := &filedriver.FileDriverFactory{
-		RootPath: *root,
+		RootPath: *RootPath,
 		Perm:     server.NewSimplePerm("user", "group"),
 	}
 
@@ -36,11 +39,11 @@ func main() {
 		Factory:  factory,
 		Port:     *port,
 		Hostname: *host,
-		Auth:     &server.SimpleAuth{Name: *user, Password: *pass},
+		//Auth:     &server.SimpleAuth{Name: *user, Password: *pass},
+		Auth: auth.GetAuth(),
 	}
 
 	log.Printf("Starting ftp server on %v:%v", opts.Hostname, opts.Port)
-	log.Printf("Username %v, Password %v", *user, *pass)
 	server := server.NewServer(opts)
 	err := server.ListenAndServe()
 	if err != nil {

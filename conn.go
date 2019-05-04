@@ -11,6 +11,8 @@ import (
 	"crypto/tls"
 	"encoding/hex"
 	"fmt"
+	"github.com/goftp/server/auth"
+	"github.com/goftp/server/flowctr"
 	"io"
 	"log"
 	mrand "math/rand"
@@ -29,8 +31,9 @@ type Conn struct {
 	controlReader *bufio.Reader
 	controlWriter *bufio.Writer
 	dataConn      DataSocket
+	flowCount     *flowctr.FlowCount
 	driver        Driver
-	auth          Auth
+	auth          *auth.Auth
 	logger        Logger
 	server        *Server
 	tlsConfig     *tls.Config
@@ -106,6 +109,7 @@ func (conn *Conn) Serve() {
 	// read commands
 	for {
 		line, err := conn.controlReader.ReadString('\n')
+		fmt.Println(line)
 		if err != nil {
 			if err != io.EOF {
 				conn.logger.Print(conn.sessionID, fmt.Sprint("read error:", err))
@@ -151,7 +155,6 @@ func (conn *Conn) upgradeToTLS() error {
 // appropriate response.
 func (conn *Conn) receiveLine(line string) {
 	command, param := conn.parseLine(line)
-	conn.logger.PrintCommand(conn.sessionID, command, param)
 	cmdObj := commands[strings.ToUpper(command)]
 	if cmdObj == nil {
 		conn.writeMessage(500, "Command not found")
@@ -162,7 +165,25 @@ func (conn *Conn) receiveLine(line string) {
 	} else if cmdObj.RequireAuth() && conn.user == "" {
 		conn.writeMessage(530, "not logged in")
 	} else {
-		cmdObj.Execute(conn, param)
+		ok, uploadCnt, dwloadCnt := cmdObj.Execute(conn, param)
+		if ok {
+			switch strings.ToUpper(command) {
+			case "PASS":{
+				if !conn.flowCount.Regist(conn.user){
+					conn.Close()
+				}
+			}
+			case "STOR":{
+				conn.flowCount.Add(conn.user,flowctr.UPLOAD,uploadCnt)
+			}
+			case "RETR":{
+				conn.flowCount.Add(conn.user,flowctr.DWLOAD,dwloadCnt)
+			}
+			case "QUIT":{
+				conn.flowCount.Unregist(conn.user)
+			}
+			}
+		}
 	}
 }
 
