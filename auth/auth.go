@@ -2,7 +2,7 @@ package auth
 
 import (
 	"errors"
-	"github.com/goftp/server/config"
+	"github.com/chilogen/goftp/config"
 	"github.com/jinzhu/gorm"
 	"github.com/sirupsen/logrus"
 	"time"

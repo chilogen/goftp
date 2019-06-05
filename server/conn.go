@@ -11,8 +11,8 @@ import (
 	"crypto/tls"
 	"encoding/hex"
 	"fmt"
-	"github.com/goftp/server/auth"
-	"github.com/goftp/server/flowctr"
+	"github.com/chilogen/goftp/auth"
+	"github.com/chilogen/goftp/flowctr"
 	"io"
 	"log"
 	mrand "math/rand"
@@ -109,7 +109,6 @@ func (conn *Conn) Serve() {
 	// read commands
 	for {
 		line, err := conn.controlReader.ReadString('\n')
-		fmt.Println(line)
 		if err != nil {
 			if err != io.EOF {
 				conn.logger.Print(conn.sessionID, fmt.Sprint("read error:", err))

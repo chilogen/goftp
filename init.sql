@@ -30,3 +30,4 @@ CREATE TABLE if not exists `ip_list` (
 
 -- only for test. do not store password as plaintext
 insert into `user`(id,user_name,password)value (1,'weisiqian','abc');
+insert into `ip_list`(id,ip_type,version,addr)value (1,1,4,'127.0.0.1');

@@ -602,6 +602,10 @@ func (cmd commandPass) Execute(conn *Conn, param string) (success bool,uploadCnt
 	conn.user = conn.reqUser
 	conn.reqUser = ""
 	conn.namePrefix = userPath
+
+	if _,err:=conn.driver.Stat(conn.namePrefix);err!=nil{
+		_=conn.driver.MakeDir(conn.namePrefix)
+	}
 	return
 }
 
@@ -767,6 +771,7 @@ func (cmd commandRetr) Execute(conn *Conn, param string) (success bool,uploadCnt
 		conn.writeMessage(551, "File not available")
 		success=false
 	}
+	downloadCnt=bytes
 	return
 }
 
@@ -1134,6 +1139,7 @@ func (cmd commandStor) Execute(conn *Conn, param string) (success bool,uploadCnt
 		conn.writeMessage(450, fmt.Sprint("error during transfer: ", err))
 		success=false
 	}
+	uploadCnt=bytes
 	return
 }
 

@@ -8,11 +8,11 @@ package main
 
 import (
 	"flag"
-	"github.com/goftp/server/auth"
+	"github.com/chilogen/goftp/auth"
+	"github.com/chilogen/goftp/file-driver"
 	"log"
 
-	filedriver "github.com/goftp/file-driver"
-	"github.com/goftp/server"
+	"github.com/chilogen/goftp/server"
 )
 
 var (
@@ -20,7 +20,7 @@ var (
 )
 
 func main() {
-	RootPath = flag.String("root", "~/testftp", "Root directory for server")
+	RootPath = flag.String("root", "./testftp", "Root directory for server")
 	var (
 		port = flag.Int("port", 2122, "Port")
 		host = flag.String("host", "", "Port")

@@ -2,7 +2,8 @@ package flowctr
 
 import (
 	"fmt"
-	"github.com/goftp/server/config"
+	"github.com/chilogen/goftp/config"
+	"strconv"
 	"strings"
 	"sync"
 	"time"
@@ -44,11 +45,26 @@ func (flowCount *FlowCount) Show() {
 		_, _ = fmt.Fprint(&b, "User      total-upload     total-download\n")
 		flowCount.count.Range(func(key, value interface{}) bool {
 			counter := value.(FlowCountModel)
-			_, _ = fmt.Fprintf(&b, fmt.Sprintf("%-10v%10v%10v\n", key, counter.UpLoadCount, counter.DownLoadCount))
+			_, _ = fmt.Fprintf(&b, fmt.Sprintf("%-10v%10v%10v\n", key,
+				hunmanReadAble(counter.UpLoadCount),
+				hunmanReadAble(counter.DownLoadCount)))
 			return true
 		})
 		fmt.Println(b.String())
 	}
+}
+
+func hunmanReadAble(bytes int64)string{
+	suffix:=[]string{"B","KB","M","G","T"}
+	cnt:=0
+	for{
+		if bytes<1000{
+			break
+		}
+		bytes=bytes/1000
+		cnt++
+	}
+	return strconv.FormatInt(bytes,10)+suffix[cnt]
 }
 
 func (flowCount *FlowCount) Regist(userName string)(success bool) {

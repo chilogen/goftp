@@ -10,10 +10,11 @@ import (
 	"crypto/tls"
 	"errors"
 	"fmt"
-	"github.com/goftp/server/auth"
-	"github.com/goftp/server/flowctr"
+	"github.com/chilogen/goftp/auth"
+	"github.com/chilogen/goftp/flowctr"
 	"net"
 	"strconv"
+	"strings"
 )
 
 // Version returns the library version
@@ -257,6 +258,10 @@ func (server *Server) Serve(l net.Listener) error {
 				continue
 			}
 			return err
+		}
+		ip:=strings.Split(tcpConn.RemoteAddr().String(),":")[0]
+		if res,_:=server.Auth.CheckIP(ip);res==false{
+			tcpConn.Close()
 		}
 		driver, err := server.Factory.NewDriver()
 		if err != nil {
